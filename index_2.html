@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>台股配息年表</title>
+<style>
+  :root{
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --text:#1a1d24;
+    --sub:#6b7280;
+    --border:#e5e7eb;
+    --accent:#0f6b4c;
+    --accent-bg:#e6f4ee;
+    --up:#c0392b;
+    --down:#1e7e34;
+    --future:#9a6b00;
+    --future-bg:#fff6e0;
+    --head-bg:#eef1f5;
+    --row-hover:#f1f8f5;
+    --chip-bg:#f1f3f5;
+    --detail-bg:#fafbfc;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1216;
+      --card:#171b21;
+      --text:#e7eaee;
+      --sub:#9aa4b2;
+      --border:#2a2f37;
+      --accent:#3ddc97;
+      --accent-bg:#123528;
+      --up:#ff6b6b;
+      --down:#4fd17a;
+      --future:#e8b923;
+      --future-bg:#2b2410;
+      --head-bg:#1d2128;
+      --row-hover:#1b2620;
+      --chip-bg:#20252c;
+      --detail-bg:#14171c;
+      --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1216;
+    --card:#171b21;
+    --text:#e7eaee;
+    --sub:#9aa4b2;
+    --border:#2a2f37;
+    --accent:#3ddc97;
+    --accent-bg:#123528;
+    --up:#ff6b6b;
+    --down:#4fd17a;
+    --future:#e8b923;
+    --future-bg:#2b2410;
+    --head-bg:#1d2128;
+    --row-hover:#1b2620;
+    --chip-bg:#20252c;
+    --detail-bg:#14171c;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:16px;
+  }
+  .wrap{max-width:1400px;margin:0 auto;}
+  header{margin-bottom:14px;}
+  h1{font-size:1.4rem;margin:0 0 4px;letter-spacing:.02em;}
+  .sub{color:var(--sub);font-size:.85rem;line-height:1.6;}
+  .badge{
+    display:inline-block;background:var(--accent-bg);color:var(--accent);
+    padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:600;margin-right:6px;
+  }
+  .notice{
+    background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding:10px 14px;font-size:.8rem;color:var(--sub);margin:10px 0 16px;line-height:1.7;
+    box-shadow:var(--shadow);
+  }
+  .notice b{color:var(--text);}
+
+  .tabs{display:flex;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--border);}
+  .tab-btn{
+    appearance:none;border:none;background:transparent;color:var(--sub);
+    font-size:.92rem;font-weight:600;font-family:inherit;padding:9px 4px 10px;
+    cursor:pointer;position:relative;top:1px;border-bottom:2px solid transparent;
+  }
+  .tab-btn .tab-emoji{margin-right:5px;}
+  .tab-btn:hover{color:var(--accent);}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .toolbar{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;
+  }
+  .toolbar input[type=search]{
+    flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);
+    background:var(--card);color:var(--text);font-size:.9rem;
+  }
+  .toolbar select{
+    padding:9px 10px;border-radius:8px;border:1px solid var(--border);
+    background:var(--card);color:var(--text);font-size:.85rem;
+  }
+  .toolbar .count{font-size:.8rem;color:var(--sub);white-space:nowrap;}
+  .table-scroll{
+    overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);
+    box-shadow:var(--shadow);
+    -webkit-overflow-scrolling:touch;
+  }
+  table{border-collapse:collapse;width:100%;min-width:1040px;font-size:.86rem;}
+  thead th{
+    position:sticky;top:0;background:var(--head-bg);z-index:2;
+    text-align:left;padding:10px 12px;font-weight:700;white-space:nowrap;
+    border-bottom:1px solid var(--border);cursor:pointer;user-select:none;
+  }
+  thead th:hover{color:var(--accent);}
+  thead th .arrow{font-size:.7em;color:var(--sub);margin-left:2px;}
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle;}
+  tbody tr.etf-row:hover{background:var(--row-hover);}
+  tbody tr.etf-row td:first-child{font-weight:700;}
+  .name-cell{white-space:normal;min-width:150px;}
+  .name-cell .code{color:var(--sub);font-weight:400;font-size:.78em;display:block;}
+  .freq-cell{white-space:normal;min-width:96px;}
+  .freq-tag{
+    display:inline-flex;align-items:center;gap:3px;background:var(--chip-bg);border:1px solid transparent;
+    border-radius:6px;padding:2px 7px;font-size:.78rem;color:var(--sub);cursor:pointer;font-family:inherit;
+  }
+  .freq-tag:hover{border-color:var(--accent);color:var(--accent);}
+  .freq-tag .caret{font-size:.65em;}
+  .freq-detail{
+    display:none;margin-top:5px;font-size:.72rem;color:var(--sub);line-height:1.5;
+    background:var(--detail-bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;max-width:150px;
+  }
+  .freq-detail.open{display:block;}
+  .freq-detail b{color:var(--text);}
+  .price{font-variant-numeric:tabular-nums;font-weight:700;}
+  .yield{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);}
+  .yield.warn::after{content:" *";color:var(--future);}
+  .last-div{font-variant-numeric:tabular-nums;}
+  .muted{color:var(--sub);font-size:.8rem;}
+  .upcoming-tag{
+    display:inline-block;margin-top:2px;background:var(--future-bg);color:var(--future);
+    border-radius:6px;padding:1px 6px;font-size:.72rem;white-space:nowrap;
+  }
+  .links a{
+    display:inline-block;margin-right:6px;padding:4px 9px;border-radius:6px;font-size:.78rem;
+    text-decoration:none;border:1px solid var(--border);color:var(--text);white-space:nowrap;
+  }
+  .links a:hover{border-color:var(--accent);color:var(--accent);}
+  .expand-btn{
+    border:1px solid var(--border);background:var(--card);color:var(--sub);
+    border-radius:6px;padding:4px 10px;font-size:.78rem;cursor:pointer;white-space:nowrap;
+  }
+  .expand-btn:hover{color:var(--accent);border-color:var(--accent);}
+  tr.detail-row{display:none;}
+  tr.detail-row.open{display:table-row;}
+  tr.detail-row td{
+    background:var(--detail-bg);padding:12px 16px 14px 28px;white-space:normal;
+    border-bottom:1px solid var(--border);border-left:3px solid var(--border);
+  }
+  .hist-title{font-size:.75rem;color:var(--sub);margin:0 0 9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .hist-title .warn-note{color:var(--future);}
+  .year-group{display:flex;gap:14px;align-items:baseline;padding:5px 0;}
+  .year-group + .year-group{border-top:1px dashed var(--border);}
+  .year-label{
+    flex:0 0 auto;min-width:64px;font-weight:700;font-size:.8rem;color:var(--text);
+  }
+  .year-label .year-total{
+    display:block;font-weight:400;color:var(--sub);font-size:.7rem;margin-top:1px;white-space:nowrap;
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:6px 8px;flex:1;}
+  .chip{
+    background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:.76rem;
+    font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--sub);
+  }
+  .chip b{color:var(--text);font-weight:700;margin-left:5px;}
+  .chip.future{background:var(--future-bg);border-color:var(--future-bg);color:var(--future);}
+  .chip.future b{color:var(--future);}
+  footer{margin-top:18px;color:var(--sub);font-size:.75rem;line-height:1.8;padding-bottom:20px;}
+  footer a{color:var(--accent);}
+  @media (max-width:640px){
+    body{padding:10px;}
+    h1{font-size:1.15rem;}
+    table{font-size:.8rem;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📊 台股配息年表</h1>
+    <div class="sub">
+      <span class="badge" id="asofBadge">資料時間 2026/09/04</span>
+      彙整自玩股網、奇摩股市、Goodinfo、鉅亨網、CMoney 等公開資料 · 收錄近1-2年配息紀錄
+    </div>
+  </header>
+
+  <div class="notice">
+    ⚠️ <b>使用須知</b>：本頁資料由排程自動於每個交易日收盤後彙整更新一次，<b>非盤中即時報價</b>。
+    股價、配息、殖利率僅反映上方標示的資料時間點，<b>僅供參考，不構成投資建議</b>。
+    如需盤中即時股價與完整配息紀錄，請點擊每列上的「奇摩股市」「玩股網」連結查詢。
+    標示 <span style="color:var(--future)">「殖利率*」</span> 代表該檔資料筆數可能不完整、估算僅供參考。
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="etf" type="button"><span class="tab-emoji">📈</span>ETF配息</button>
+    <button class="tab-btn" data-tab="fin" type="button"><span class="tab-emoji">🏦</span>熱門金融股配息</button>
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="搜尋代號或名稱…">
+    <select id="freqFilter">
+      <option value="">全部配息頻率</option>
+    </select>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="table-scroll">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th data-key="code">代號<span class="arrow"></span></th>
+          <th data-key="name">名稱<span class="arrow"></span></th>
+          <th data-key="freq">配息頻率<span class="arrow"></span></th>
+          <th data-key="price">參考股價<span class="arrow"></span></th>
+          <th data-key="ttmDiv">近12個月配息<span class="arrow"></span></th>
+          <th data-key="yield">估算殖利率<span class="arrow">▼</span></th>
+          <th data-key="lastDate">最近除息日<span class="arrow"></span></th>
+          <th>最近配息金額</th>
+          <th>查詢連結</th>
+          <th>明細</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <footer id="footer">
+    資料來源（每日排程自動彙整，非交易所官方即時串接）：
+    <a href="https://www.wantgoo.com/" target="_blank" rel="noopener">玩股網 wantgoo.com</a>、
+    <a href="https://tw.stock.yahoo.com/" target="_blank" rel="noopener">奇摩股市 tw.stock.yahoo.com</a>、
+    Goodinfo!台灣股市資訊網、鉅亨網 cnyes.com、MoneyDJ理財網、CMoney。<br>
+    「估算殖利率」= 已查得之近12個月配息加總 ÷ 參考股價，非官方公告數字，個別標的若配息紀錄查詢不完整會偏低，請以連結內官方資料為準。<br>
+    金融股多為「年配」（每年除息一次），配息金額與除息日以現金股利為準（不含股票股利）。<br>
+    此工具僅供個人記錄與參考使用，不構成任何投資建議。
+  </footer>
+</div>
+
+<script>
+// ============ 今日日期（每次開啟頁面自動取得當下時間，用於判斷已發/未發配息與估算殖利率） ============
+const TODAY = new Date();
+function fmtTodayTW(){
+  return new Intl.DateTimeFormat("en-CA", { timeZone:"Asia/Taipei", year:"numeric", month:"2-digit", day:"2-digit" })
+    .format(TODAY).replace(/-/g, "/");
+}
+
+// ============ ETF 資料 ============
+const DATA_ETF = [
+  { code:"0050", name:"元大台灣50", freq:"半年配", price:106.75,
+    divs:[["2024-01-17",3.0],["2024-07-16",1.0],["2025-01-17",2.7],["2025-07-21",0.36],["2026-01-22",1.0],["2026-07-21",0.6]] },
+
+  { code:"0056", name:"元大高股息", freq:"季配", price:54.85,
+    divs:[["2024-01-17",0.70],["2024-04-18",0.79],["2024-07-16",1.07],["2024-10-17",1.07],["2025-01-17",1.07],["2025-04-23",1.07],
+          ["2025-07-21",0.866],["2025-10-23",0.866],["2026-01-22",0.866],["2026-04-23",1.00],["2026-07-21",1.35]] },
+
+  { code:"006208", name:"富邦台50", freq:"半年配", price:245.2,
+    divs:[["2024-07-16",0.783],["2024-11-18",0.9],["2025-07-16",0.989],["2025-11-18",3.448],["2026-07-16",4.75]] },
+
+  { code:"00713", name:"元大台灣高息低波", freq:"季配", price:62.8,
+    divs:[["2024-03-18",0.88],["2024-06-19",1.50],["2024-09-18",1.50],["2024-12-17",1.40],["2025-03-21",1.40],["2025-06-20",1.10],
+          ["2025-09-19",0.78],["2025-12-19",0.78],["2026-03-20",0.78],["2026-06-22",1.00],["2026-09-21",1.25]] },
+
+  { code:"00878", name:"國泰永續高股息", freq:"季配", price:33.63,
+    divs:[["2024-05-17",0.51],["2024-08-16",0.55],["2024-11-18",0.55],["2025-02-20",0.50],["2025-05-19",0.47],["2025-08-18",0.40],
+          ["2025-11-18",0.40],["2026-02-26",0.42],["2026-05-19",0.66],["2026-08-18",1.01]] },
+
+  { code:"00900", name:"富邦特選高股息30", freq:"月配", price:18.56,
+    divs:[["2024-11-18",0.1],["2024-12-17",0.1],["2025-01-17",0.1],["2025-02-19",0.1],["2025-03-18",0.1],["2025-04-23",0.1],
+          ["2025-05-19",0.1],["2025-06-17",0.1],["2025-07-16",0.1],["2025-08-18",0.1],["2025-09-16",0.1],["2025-10-20",0.1],
+          ["2025-11-18",0.1],["2025-12-16",0.075],["2026-01-20",0.075],["2026-02-25",0.075],["2026-03-17",0.075],["2026-04-20",0.075],
+          ["2026-05-19",0.075],["2026-06-16",0.075],["2026-07-16",0.075],["2026-08-18",0.075],["2026-09-16",0.075]] },
+
+  { code:"00919", name:"群益台灣精選高息", freq:"季配", price:32.35, incomplete:true,
+    divs:[["2024-06-24",0.70],["2024-09-23",0.72],["2024-12-20",0.72],["2025-06-17",0.72],["2025-09-16",0.54],["2025-12-16",0.54],
+          ["2026-06-16",1.0],["2026-09-16",1.1]] },
+
+  { code:"00929", name:"復華台灣科技優息", freq:"月配", price:29.46,
+    divs:[["2025-01-16",0.050],["2025-02-19",0.050],["2025-03-19",0.050],["2025-04-22",0.070],["2025-05-20",0.070],["2025-06-18",0.070],
+          ["2025-07-17",0.080],["2025-08-19",0.080],["2025-09-17",0.080],["2025-10-21",0.090],["2025-11-19",0.090],["2025-12-17",0.100],
+          ["2026-01-20",0.100],["2026-03-03",0.100],["2026-03-18",0.110],["2026-04-21",0.130],["2026-05-20",0.130],["2026-06-17",0.260],
+          ["2026-07-21",0.380],["2026-08-19",0.380]] },
+
+  { code:"00915", name:"凱基優選高股息30", freq:"季配", price:31.59,
+    divs:[["2024-03-18",0.720],["2024-06-19",0.720],["2024-09-19",0.820],["2024-12-17",0.750],["2025-03-19",0.500],["2025-06-17",0.210],
+          ["2025-09-16",0.290],["2025-12-16",0.350],["2026-03-17",0.380],["2026-06-16",0.450]] },
+
+  { code:"00932", name:"兆豐永續高息等權重", freq:"季配", price:17.57,
+    divs:[["2024-05-16",0.520],["2024-08-16",0.650],["2024-11-19",0.520],["2025-02-18",0.100],["2025-05-19",0.100],["2025-08-18",0.180],
+          ["2025-11-18",0.200],["2026-02-26",0.220],["2026-05-19",0.220],["2026-08-18",0.230]] },
+
+  { code:"00934", name:"中信成長高股息", freq:"月配", price:30.82,
+    divs:[["2025-01-17",0.026],["2025-11-18",0.130],["2025-12-16",0.132],["2026-01-19",0.132],["2026-02-26",0.140],["2026-03-17",0.140],
+          ["2026-04-20",0.143],["2026-05-19",0.250],["2026-06-16",0.250],["2026-07-16",0.300],["2026-08-18",0.300]] },
+
+  { code:"00907", name:"永豐優息存股", freq:"雙月配", price:17.43,
+    divs:[["2024-02-26",0.141],["2024-04-22",0.141],["2024-06-25",0.330],["2024-08-23",0.330],["2024-10-24",0.280],["2024-12-24",0.220],
+          ["2025-02-24",0.130],["2025-04-23",0.095],["2025-06-24",0.011],["2025-08-26",0.130],["2025-10-23",0.136],["2025-12-23",0.136],
+          ["2026-02-25",0.160],["2026-04-23",0.200],["2026-06-24",0.205],["2026-08-25",0.240]] },
+
+  { code:"00930", name:"永豐ESG低碳高息", freq:"雙月配", price:23.75,
+    divs:[["2024-03-21",0.246],["2024-05-23",0.360],["2024-07-26",0.360],["2024-09-20",0.430],["2024-11-26",0.430],["2025-01-22",0.160],
+          ["2025-03-20",0.250],["2025-05-27",0.070],["2025-07-24",0.180],["2025-09-22",0.118],["2025-11-25",0.129],["2026-01-20",0.141],
+          ["2026-03-23",0.150],["2026-05-26",0.310],["2026-07-27",0.250]] },
+
+  { code:"00936", name:"台新永續高息中小", freq:"月配", price:21.59, incomplete:true,
+    divs:[["2025-11-17",0.055],["2025-12-15",0.055],["2026-01-16",0.060],["2026-02-25",0.100],["2026-03-16",0.100],["2026-04-17",0.100],
+          ["2026-05-18",0.100],["2026-06-15",0.120],["2026-07-15",0.120],["2026-08-17",0.120],["2026-09-15",0.160]] },
+
+  { code:"00939", name:"統一台灣高息動能", freq:"月配", price:22.72,
+    divs:[["2024-08-01",0.063],["2024-09-03",0.063],["2024-10-02",0.063],["2024-10-31",0.063],["2024-12-03",0.063],["2024-12-31",0.050],
+          ["2025-02-11",0.050],["2025-03-05",0.050],["2025-04-01",0.050],["2025-05-02",0.050],["2025-06-03",0.040],["2025-07-01",0.068],
+          ["2025-07-31",0.068],["2025-09-02",0.068],["2025-10-02",0.072],["2025-11-03",0.072],["2025-12-02",0.072],["2026-01-02",0.072],
+          ["2026-02-02",0.072],["2026-03-31",0.144],["2026-05-04",0.072],["2026-06-02",0.072],["2026-07-02",0.125],["2026-07-31",0.125],
+          ["2026-09-01",0.125]] },
+
+  { code:"00940", name:"元大台灣價值高息", freq:"月配", price:12.90,
+    divs:[["2025-02-06",0.030],["2025-03-11",0.030],["2025-04-10",0.030],["2025-05-08",0.030],["2025-06-10",0.030],["2025-07-10",0.040],
+          ["2025-08-07",0.040],["2025-09-09",0.040],["2025-10-08",0.040],["2025-11-06",0.040],["2025-12-10",0.045],["2026-01-08",0.045],
+          ["2026-02-02",0.045],["2026-03-11",0.045],["2026-04-09",0.045],["2026-05-07",0.045],["2026-06-09",0.050],["2026-07-09",0.050],
+          ["2026-08-11",0.050],["2026-09-08",0.055]] },
+
+  { code:"00701", name:"國泰股利精選30", freq:"半年配", price:38.6,
+    divs:[["2023-08-16",0.200],["2024-01-17",0.790],["2024-08-16",0.300],["2025-01-17",2.050],["2025-08-18",1.800],["2026-01-20",0.700],
+          ["2026-08-18",1.600]] },
+
+  { code:"00918", name:"大華優利高填息30", freq:"季配", price:35.39,
+    divs:[["2024-03-18",0.70],["2024-06-19",0.80],["2024-09-19",0.78],["2024-12-19",0.84],["2025-03-20",0.70],["2025-06-19",0.70],
+          ["2025-09-18",0.52],["2025-12-18",0.565],["2026-03-19",0.62],["2026-06-18",1.26],["2026-09-18",1.75]] },
+];
+
+// ============ 熱門金融股資料 ============
+// 皆為金控年配（現金股利，不含股票股利）
+const DATA_FIN = [
+  { code:"2881", name:"富邦金", freq:"年配", price:150.5,
+    divs:[["2024-07-19",2.50],["2025-07-01",4.25],["2026-07-01",4.25]] },
+
+  { code:"2882", name:"國泰金", freq:"年配", price:114.00,
+    divs:[["2024-07-01",2.00],["2025-06-30",3.50],["2026-06-30",3.50]] },
+
+  { code:"2891", name:"中信金", freq:"年配", price:68.4,
+    divs:[["2024-07-15",1.80],["2025-07-14",2.30],["2026-07-10",2.50]] },
+
+  { code:"2886", name:"兆豐金", freq:"年配", price:50.4,
+    divs:[["2024-08-08",1.50],["2025-08-07",1.60],["2026-08-13",1.75]] },
+
+  { code:"2884", name:"玉山金", freq:"年配", price:43.35,
+    divs:[["2024-07-25",1.20],["2025-07-22",1.20],["2026-07-01",1.40]] },
+
+  { code:"2892", name:"第一金", freq:"年配", price:36.80,
+    divs:[["2024-08-08",0.85],["2025-08-07",0.95],["2026-08-11",1.30]] },
+
+  { code:"5880", name:"合庫金", freq:"年配", price:26.50,
+    divs:[["2024-08-14",0.65],["2025-08-13",0.70],["2026-08-11",0.80]] },
+
+  { code:"2887", name:"台新新光金", freq:"年配", price:41.45,
+    divs:[["2024-08-06",0.60],["2025-08-12",0.90],["2026-07-21",1.00]] },
+
+  { code:"2890", name:"永豐金", freq:"年配", price:42.85,
+    divs:[["2024-08-22",0.75],["2025-08-21",0.91],["2026-07-23",1.10]] },
+
+  { code:"2885", name:"元大金", freq:"年配", price:68.5,
+    divs:[["2024-06-27",1.10],["2025-07-01",1.55],["2026-07-21",1.80]] },
+
+  { code:"2880", name:"華南金", freq:"年配", price:43.45,
+    divs:[["2024-08-13",1.20],["2025-08-13",1.25],["2026-08-13",1.35]] },
+
+  { code:"2883", name:"凱基金", freq:"年配", price:35.9,
+    divs:[["2024-07-01",0.5006],["2025-06-30",0.85],["2026-06-30",1.00]] },
+];
+
+function fmt(n, d=2){ return Number(n).toFixed(d); }
+
+function monthsLabel(past){
+  if(!past || !past.length) return "資料不足";
+  const set = new Set(past.map(x=>x.date.getMonth()+1));
+  const arr = [...set].sort((a,b)=>a-b);
+  if(arr.length>=11) return "每月皆有配息";
+  return arr.join("、")+" 月";
+}
+
+function enrich(etf, asof){
+  const sorted = etf.divs.map(([d,a])=>({date:new Date(d+"T00:00:00+08:00"), dateStr:d, amt:a}))
+                          .sort((a,b)=>a.date-b.date);
+  const past = sorted.filter(x=>x.date <= asof);
+  const upcoming = sorted.filter(x=>x.date > asof);
+  const last = past[past.length-1] || null;
+  const oneYearAgo = new Date(asof); oneYearAgo.setDate(oneYearAgo.getDate()-365);
+  const ttmDivs = past.filter(x=>x.date > oneYearAgo);
+  const ttmSum = ttmDivs.reduce((s,x)=>s+x.amt,0);
+  const yieldPct = etf.price ? (ttmSum/etf.price*100) : null;
+  return {...etf, past, upcoming, last, ttmSum, yieldPct};
+}
+
+const TABS = {
+  etf: {
+    label:"ETF",
+    enriched: DATA_ETF.map(e=>enrich(e, TODAY)),
+    freqOptions: ["月配","雙月配","季配","半年配"],
+    nameHeader:"ETF名稱", searchPlaceholder:"搜尋代號或名稱，例如 0056、高股息…",
+    freqDetailLabel:"通常配息月",
+    detailNote:(e)=> e.incomplete ? '<span class="warn-note">※ 部分區間資料來源查詢不到，紀錄可能不完整</span>' : ''
+  },
+  fin: {
+    label:"熱門金融股",
+    enriched: DATA_FIN.map(e=>enrich(e, TODAY)),
+    freqOptions: ["年配"],
+    nameHeader:"個股名稱", searchPlaceholder:"搜尋代號或名稱，例如 2881、富邦金…",
+    freqDetailLabel:"通常除息月",
+    detailNote:()=> '<span class="muted">金融股多為年配，金額以現金股利為準（不含股票股利）</span>'
+  }
+};
+
+let currentTab = "etf";
+let sortKey = "yield", sortDir = -1;
+
+function populateFreqFilter(){
+  const sel = document.getElementById("freqFilter");
+  const opts = TABS[currentTab].freqOptions;
+  sel.innerHTML = `<option value="">全部配息頻率</option>` + opts.map(f=>`<option value="${f}">${f}</option>`).join("");
+}
+
+function render(){
+  const tab = TABS[currentTab];
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const freq = document.getElementById("freqFilter").value;
+  let rows = tab.enriched.filter(e=>{
+    const hitQ = !q || e.code.toLowerCase().includes(q) || e.name.toLowerCase().includes(q);
+    const hitF = !freq || e.freq===freq;
+    return hitQ && hitF;
+  });
+
+  rows.sort((a,b)=>{
+    let av, bv;
+    switch(sortKey){
+      case "code": av=a.code; bv=b.code; break;
+      case "name": av=a.name; bv=b.name; break;
+      case "freq": av=a.freq; bv=b.freq; break;
+      case "price": av=a.price; bv=b.price; break;
+      case "ttmDiv": av=a.ttmSum; bv=b.ttmSum; break;
+      case "lastDate": av=a.last?a.last.date.getTime():0; bv=b.last?b.last.date.getTime():0; break;
+      default: av=a.yieldPct??-1; bv=b.yieldPct??-1;
+    }
+    if(typeof av==="string") return av.localeCompare(bv)*sortDir;
+    return (av-bv)*sortDir;
+  });
+
+  document.getElementById("count").textContent = `共 ${rows.length} 檔`;
+  document.getElementById("asofBadge").textContent = `資料時間 ${fmtTodayTW()}`;
+  document.querySelector('thead th[data-key="name"]').firstChild.textContent = tab.nameHeader;
+  document.getElementById("search").placeholder = tab.searchPlaceholder;
+
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  rows.forEach(e=>{
+    const tr = document.createElement("tr");
+    tr.className = "etf-row";
+    const yahooUrl = `https://tw.stock.yahoo.com/quote/${e.code}.TW`;
+    const wantgooUrl = `https://www.wantgoo.com/stock/${e.code}`;
+    const upcomingHtml = e.upcoming.length
+      ? `<div class="upcoming-tag">已公告 ${e.upcoming[0].dateStr} · ${fmt(e.upcoming[0].amt,3)}元</div>` : "";
+    tr.innerHTML = `
+      <td>${e.code}</td>
+      <td class="name-cell">${e.name}<span class="code">${e.code}.TW</span></td>
+      <td class="freq-cell">
+        <button class="freq-tag" type="button">${e.freq}<span class="caret">▾</span></button>
+        <div class="freq-detail">${tab.freqDetailLabel}：<b>${monthsLabel(e.past)}</b></div>
+      </td>
+      <td class="price">${e.price ? fmt(e.price,2) : "-"}</td>
+      <td class="last-div">${fmt(e.ttmSum,3)} 元</td>
+      <td class="yield ${e.incomplete?'warn':''}">${e.yieldPct!=null?fmt(e.yieldPct,2)+"%":"-"}</td>
+      <td>${e.last? e.last.dateStr : "-"}${upcomingHtml}</td>
+      <td class="last-div">${e.last? fmt(e.last.amt,3)+" 元":"-"}</td>
+      <td class="links">
+        <a href="${yahooUrl}" target="_blank" rel="noopener">奇摩股市</a>
+        <a href="${wantgooUrl}" target="_blank" rel="noopener">玩股網</a>
+      </td>
+      <td><button class="expand-btn" type="button">明細▾</button></td>
+    `;
+    const detailTr = document.createElement("tr");
+    detailTr.className = "detail-row";
+
+    // 依年度分組（新→舊）
+    const byYear = {};
+    e.past.forEach(x=>{
+      const y = x.dateStr.slice(0,4);
+      (byYear[y] = byYear[y] || []).push(x);
+    });
+    const years = Object.keys(byYear).sort((a,b)=>b-a);
+    const yearGroups = years.map(y=>{
+      const items = [...byYear[y]].reverse();
+      const total = items.reduce((s,x)=>s+x.amt,0);
+      const chips = items.map(x=>`<span class="chip">${x.dateStr}<b>${fmt(x.amt,3)}元</b></span>`).join("");
+      return `<div class="year-group">
+          <div class="year-label">${y}<span class="year-total">合計 ${fmt(total,3)}元</span></div>
+          <div class="chips">${chips}</div>
+        </div>`;
+    }).join("");
+
+    const upGroup = e.upcoming.length ? `<div class="year-group">
+          <div class="year-label" style="color:var(--future)">已公告</div>
+          <div class="chips">${e.upcoming.map(x=>`<span class="chip future">${x.dateStr}<b>${fmt(x.amt,3)}元</b></span>`).join("")}</div>
+        </div>` : "";
+
+    detailTr.innerHTML = `<td colspan="10">
+        <p class="hist-title">${e.name}（${e.code}）近1-2年配息明細
+        ${tab.detailNote(e)}</p>
+        ${upGroup}${yearGroups || '<span class="muted">查無資料</span>'}
+      </td>`;
+
+    const freqBtn = tr.querySelector(".freq-tag");
+    const freqDetail = tr.querySelector(".freq-detail");
+    freqBtn.addEventListener("click", ()=>{
+      const isOpen = freqDetail.classList.toggle("open");
+      freqBtn.querySelector(".caret").textContent = isOpen ? "▴" : "▾";
+    });
+
+    const btn = tr.querySelector(".expand-btn");
+    btn.addEventListener("click", ()=>{
+      const isOpen = detailTr.classList.toggle("open");
+      btn.textContent = isOpen ? "明細▴" : "明細▾";
+    });
+
+    tbody.appendChild(tr);
+    tbody.appendChild(detailTr);
+  });
+}
+
+document.querySelectorAll("thead th[data-key]").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const key = th.dataset.key;
+    if(sortKey===key){ sortDir*=-1; } else { sortKey=key; sortDir = -1; }
+    document.querySelectorAll("thead th .arrow").forEach(a=>a.textContent="");
+    th.querySelector(".arrow").textContent = sortDir===1 ? "▲" : "▼";
+    render();
+  });
+});
+
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("freqFilter").addEventListener("change", render);
+
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    if(btn.dataset.tab === currentTab) return;
+    currentTab = btn.dataset.tab;
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active", b===btn));
+    document.getElementById("search").value = "";
+    sortKey = "yield"; sortDir = -1;
+    document.querySelectorAll("thead th .arrow").forEach(a=>a.textContent="");
+    document.querySelector('thead th[data-key="yield"] .arrow').textContent = "▼";
+    populateFreqFilter();
+    render();
+  });
+});
+
+populateFreqFilter();
+render();
+</script>
+
+</body>
+</html>
